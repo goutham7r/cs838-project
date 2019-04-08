@@ -70,7 +70,7 @@ def get_celeb_list():
 #     celebs = celebs[:num_celebs]
     return celebs
 
-def fetch_images(celebs, prefix="", num_train=80, num_val=10, num_test=10, num_celebs=1000):
+def fetch_images(celebs, prefix="", num_train=80, num_val=10, num_test=10, num_celebs=750):
     
     with open("../IMDb-Face.csv", "r", encoding="utf8") as f:
         l = sum(1 for line in f)
@@ -196,12 +196,13 @@ def fetch_images(celebs, prefix="", num_train=80, num_val=10, num_test=10, num_c
     
     
 class FacesDataset(Dataset):
-    def __init__(self, root_dir, csv_file):
+    def __init__(self, root_dir, csv_file, transforms=None):
         self.labels_frame = pd.read_csv(os.path.join(csv_file))
         self.root_dir = root_dir
-        self.transform = transforms.Compose([transforms.ColorJitter(),
-                                             transforms.RandomAffine(degrees, translate=None, scale=None, shear=None,),
-                                             ToTensor()])
+        # self.transform = transforms.Compose([transforms.ColorJitter(),
+        #                                      transforms.RandomAffine(degrees, translate=None, scale=None, shear=None,),
+        #                                      ToTensor()])
+        self.transform=transforms
         self.num_celebs = int(self.labels_frame.iloc[len(self.labels_frame)-1, 2])+1
         self.labels_frame.drop(0)
         
