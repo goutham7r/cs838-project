@@ -77,7 +77,7 @@ class BasicBlock(nn.Module):
 
         # Gate layers
         self.fc1 = nn.Conv2d(in_planes, 16, kernel_size=1)
-        self.fc1bn = nn.BatchNorm1d(16)
+        self.fc1bn = nn.BatchNorm2d(16)
         self.fc2 = nn.Conv2d(16, 2, kernel_size=1)
         # initialize the bias of the last fc for 
         # initial opening rate of the gate of about 85%
@@ -124,7 +124,7 @@ class Bottleneck(nn.Module):
 
         # Gate layers
         self.fc1 = nn.Conv2d(in_planes, 16, kernel_size=1)
-        self.fc1bn = nn.BatchNorm1d(16)
+        self.fc1bn = nn.BatchNorm2d(16)
         self.fc2 = nn.Conv2d(16, 2, kernel_size=1)
         # initialize the bias of the last fc for 
         # initial opening rate of the gate of about 85%
@@ -136,8 +136,14 @@ class Bottleneck(nn.Module):
 
     def forward(self, x, temperature=1):
         # Compute relevance score
+        #print(x.size())
         w = F.avg_pool2d(x, x.size(2))
-        w = F.relu(self.fc1bn(self.fc1(w)))
+        #print(w.size())
+        w=self.fc1(w)
+        #print(w.size())
+        #w=w.view((x.size(0),-1))
+        #print(w.size())
+        w = F.relu(self.fc1bn(w))
         w = self.fc2(w)
         # Sample from Gumble Module
         w = self.gs(w, temp=temperature, force_hard=True)
@@ -169,7 +175,7 @@ class ResNet_ImageNet(nn.Module):
         self.layer2 = self._make_layer(block, 128, layers[1], stride=2)
         self.layer3 = self._make_layer(block, 256, layers[2], stride=2)
         self.layer4 = self._make_layer(block, 512, layers[3], stride=2)
-        self.avgpool = nn.AvgPool2d(7, stride=1)
+        self.avgpool = nn.AvgPool2d(4, stride=1)
         self.linear = nn.Linear(512 * block.expansion, num_classes)
 
         for k, m in self.named_modules():
@@ -204,8 +210,11 @@ class ResNet_ImageNet(nn.Module):
         out, a = self.layer4(out, temperature)
         gate_activations.extend(a)
         out = self.avgpool(out)
+        #print(out.size())
         out = out.view(out.size(0), -1)
+        #print(out.size())
         out = self.linear(out)
+        #print(out.size())
         return out, gate_activations
 
 class ResNet_cifar(nn.Module):
@@ -280,17 +289,17 @@ class ActivationAccum():
             if self.epoch % 25 == 0:
                 for k in range(10):
                     self.classes[k] += torch.sum(act[targets==k])
-                    self.heatmap[k, j] += torch.sum(act[targets==k]).data[0]
+                    self.heatmap[k, j] += torch.sum(act[targets==k]).item() #data[0]
 
             self.numbatches += 1
             
     def getoutput(self):
         if self.epoch % 25 == 0:
-            return([{k: self.gates[k].data.cpu().numpy()[0] / 10000 for k in self.gates},
-                {k: self.classes[k].data.cpu().numpy()[0] / 1000 / np.sum(self.numblocks) for k in self.classes},
+            return([{k: self.gates[k].item() / 10000 for k in self.gates},
+                {k: self.classes[k].item() / 1000 / np.sum(self.numblocks) for k in self.classes},
                 self.heatmap.cpu().numpy() / 1000])
         else:
-            return([{k: self.gates[k].data.cpu().numpy()[0] / 10000 for k in self.gates}])
+            return([{k: self.gates[k].item() / 10000 for k in self.gates}])
 
 
 class ActivationAccum_img():
@@ -315,17 +324,18 @@ class ActivationAccum_img():
             if self.epoch in [30, 60, 99, 149]:
                 for k in range(1000):
                     if target_rates[j] < 1:
-                        self.classes[k] += torch.sum(act[targets==k]).data[0]
-                        self.heatmap[k, j] += torch.sum(act[targets==k]).data[0]
+                        self.classes[k] += torch.sum(act[targets==k]).item() #data[0]
+                        self.heatmap[k, j] += torch.sum(act[targets==k]).item() #data[0]
                     else:
-                        self.classes[k] += torch.sum(targets==k).data[0]
-                        self.heatmap[k, j] += torch.sum(targets==k).data[0]
+                        self.classes[k] += torch.sum(targets==k).item() #data[0]
+                        self.heatmap[k, j] += torch.sum(targets==k).item() #data[0]
 
             self.numbatches += 1
     def getoutput(self):
         for k in list(self.gates.keys()):
             if type(self.gates[k]) != int:
-                self.gates[k] = self.gates[k].data.cpu().numpy()[0]
+                self.gates[k] = self.gates[k].item()
+                #self.gates[k] = self.gates[k].data.cpu().numpy()[0]
         
         if self.epoch in [30, 60, 99, 149]:
             return([{k: self.gates[k] / 50000 for k in self.gates},

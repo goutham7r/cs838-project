@@ -14,7 +14,7 @@ import torch.utils.data
 import pandas as pd
 from torch.utils.data.dataset import Dataset  
 from torchvision import transforms, utils
-
+from PIL import Image
 
 
 ASPECT_LB = 0.75
@@ -208,17 +208,21 @@ class FacesDataset(Dataset):
         
     def __getitem__(self, idx):
         img_name = os.path.join(self.labels_frame.iloc[idx, 0])
-        image = plt.imread(img_name)
+        image = Image.open(img_name)
         
         def one_hot(idx):
-            a = np.zeros(self.num_celebs)
+            a = np.zeros(self.num_celebs, dtype=int)
             a[idx] = 1
-            return a
+            return int(idx) #torch.from_numpy(np.array([idx]))
         
-        sample = (idx, (image, one_hot(self.labels_frame.iloc[idx, 2])))
-
+        #print(type(image))
         if self.transform is not None:
-            sample = self.transform(sample)
+            image=self.transform(image)
+
+        sample =  (image, one_hot(self.labels_frame.iloc[idx, 2]))
+
+        #if self.transform is not None:
+        #    sample = self.transform(sample)
 
         return sample
     
