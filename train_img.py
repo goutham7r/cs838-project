@@ -422,7 +422,7 @@ def save_checkpoint(state, is_best, filename='checkpoint.pth.tar'):
 class VisdomLinePlotter(object):
     """Plots to Visdom"""
     def __init__(self, env_name='main'):
-        self.viz = Visdom()
+        self.viz = Visdom(server='172.220.4.32',port='6006')
         self.env = env_name
         self.plots = {}
     def plot(self, var_name, split_name, x, y, env=None):
