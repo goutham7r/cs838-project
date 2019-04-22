@@ -1,4 +1,4 @@
-'''Train CIFAR10 with PyTorch.'''
+'''n CIFAR10 with PyTorch.'''
 from __future__ import print_function
 
 import argparse
@@ -84,10 +84,10 @@ def main():
         
     # set the target rates for each layer
     # the default is to use the same target rate for each layer
-    target_rates_list = [args.target] * 16
+    target_rates_list = [args.target] * 33
     target_rates = {i:target_rates_list[i] for i in range(len(target_rates_list))}
 
-    model = ResNet50_ImageNet()
+    model = ResNet101_ImageNet()
 
     # optionally initialize from pretrained
     if args.pretrained:
@@ -261,7 +261,7 @@ def train(train_loader, model, criterion, optimizer, epoch, target_rates):
         acts = torch.mean(acts / len(activation_rates))
 
         act_loss = args.lossfact * acts
-        loss = loss_classify + act_loss
+        loss = loss_classify #+ act_loss
 
         # Sometimes this value is nan 
         # If someone can find out why, please add a pull request
