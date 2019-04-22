@@ -41,7 +41,7 @@ parser.add_argument('--lrfact', default=1, type=float,
                     help='learning rate factor')
 parser.add_argument('--lossfact', default=1, type=float,
                     help='loss factor')
-parser.add_argument('--target', default=0.7, type=float, help='target rate')
+parser.add_argument('--target', default=1.0, type=float, help='target rate')
 parser.add_argument('--momentum', default=0.9, type=float, help='momentum')
 parser.add_argument('--weight-decay', '--wd', default=1e-4, type=float,
                     help='weight decay (default: 1e-4)')
@@ -84,10 +84,10 @@ def main():
         
     # set the target rates for each layer
     # the default is to use the same target rate for each layer
-    target_rates_list = [args.target] * 16
+    target_rates_list = [args.target] * 33
     target_rates = {i:target_rates_list[i] for i in range(len(target_rates_list))}
 
-    model = ResNet50_ImageNet()
+    model = ResNet101_ImageNet()
 
     # optionally initialize from pretrained
     if args.pretrained:
@@ -261,7 +261,7 @@ def train(train_loader, model, criterion, optimizer, epoch, target_rates):
         acts = torch.mean(acts / len(activation_rates))
 
         act_loss = args.lossfact * acts
-        loss = loss_classify + act_loss
+        loss = loss_classify #+ act_loss
 
         # Sometimes this value is nan 
         # If someone can find out why, please add a pull request
@@ -337,7 +337,7 @@ def validate(val_loader, model, criterion, epoch, target_rates):
 
             # compute output
             output, activation_rates = model(input_var, temperature=temp)
-
+            #print(target.data[0].cpu().numpy(),[a.data[0].cpu().numoy()[0][0] for a in activation_rates])
             # classification loss
             loss = criterion(output, target_var)
 
