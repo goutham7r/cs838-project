@@ -85,6 +85,8 @@ def main():
     # set the target rates for each layer
     # the default is to use the same target rate for each layer
     target_rates_list = [args.target] * 33
+    for i in range(7,30):
+        target_rates_list[i]=0.7
     target_rates = {i:target_rates_list[i] for i in range(len(target_rates_list))}
 
     model = ResNet101_ImageNet()

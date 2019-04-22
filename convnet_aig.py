@@ -160,6 +160,64 @@ class Bottleneck(nn.Module):
         # The value of the gate will be used in the target rate loss
         return out, w[:, 1]
 
+
+class Bottleneck_without_gates(nn.Module):
+    expansion = 4
+
+    def __init__(self, in_planes, planes, stride=1):
+        super(Bottleneck, self).__init__()
+        self.conv1 = nn.Conv2d(in_planes, planes, kernel_size=1, bias=False)
+        self.bn1 = nn.BatchNorm2d(planes)
+        self.conv2 = nn.Conv2d(planes, planes, kernel_size=3, stride=stride, padding=1, bias=False)
+        self.bn2 = nn.BatchNorm2d(planes)
+        self.conv3 = nn.Conv2d(planes, self.expansion*planes, kernel_size=1, bias=False)
+        self.bn3 = nn.BatchNorm2d(self.expansion*planes)
+
+        self.shortcut = nn.Sequential()
+        if stride != 1 or in_planes != self.expansion*planes:
+            self.shortcut = nn.Sequential(
+                nn.Conv2d(in_planes, self.expansion*planes, kernel_size=1, stride=stride, bias=False),
+                nn.BatchNorm2d(self.expansion*planes)
+            )
+
+        # Gate layers
+        self.fc1 = nn.Conv2d(in_planes, 16, kernel_size=1)
+        self.fc1bn = nn.BatchNorm2d(16)
+        self.fc2 = nn.Conv2d(16, 2, kernel_size=1)
+        # initialize the bias of the last fc for 
+        # initial opening rate of the gate of about 85%
+        self.fc2.bias.data[0] = 0.1
+        self.fc2.bias.data[1] = 2
+
+        self.gs = GumbleSoftmax()
+        self.gs.cuda()
+
+    def forward(self, x, temperature=1):
+        # Compute relevance score
+        #print(x.size())
+        w = F.avg_pool2d(x, x.size(2))
+        #print(w.size())
+        w=self.fc1(w)
+        #print(w.size())
+        #w=w.view((x.size(0),-1))
+        #print(w.size())
+        w = F.relu(self.fc1bn(w))
+        w = self.fc2(w)
+        # Sample from Gumble Module
+        w = self.gs(w, temp=temperature, force_hard=True)
+        w[:,1]=1.0
+        # TODO: For fast inference, check decision of gate and jump right 
+        #       to the next layer if needed.
+
+        out = F.relu(self.bn1(self.conv1(x)), inplace=True)
+        out = F.relu(self.bn2(self.conv2(out)), inplace=True)
+        out = self.bn3(self.conv3(out))
+        out = self.shortcut(x) + out * w[:,1].unsqueeze(1)
+        out = F.relu(out, inplace=True)
+        # Return output of layer and the value of the gate
+        # The value of the gate will be used in the target rate loss
+        return out, w[:, 1]
+
     
 class ResNet_ImageNet(nn.Module):
 
@@ -264,7 +322,7 @@ def ResNet50_ImageNet():
     return ResNet_ImageNet(Bottleneck, [3,4,6,3])
 
 def ResNet101_ImageNet():
-    return ResNet_ImageNet(Bottleneck, [3,4,23,3])
+    return ResNet_ImageNet(Bottleneck_without_gates, [3,4,23,3])
 
 #def ResNet101_ImageNet_without_gates():
 #    return ResNet_ImageNet(Bottleneck, [3,4,23,3])
