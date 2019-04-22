@@ -154,7 +154,7 @@ class Bottleneck(nn.Module):
         out = F.relu(self.bn1(self.conv1(x)), inplace=True)
         out = F.relu(self.bn2(self.conv2(out)), inplace=True)
         out = self.bn3(self.conv3(out))
-        out = self.shortcut(x) + out #* w[:,1].unsqueeze(1)
+        out = self.shortcut(x) + out * w[:,1].unsqueeze(1)
         out = F.relu(out, inplace=True)
         # Return output of layer and the value of the gate
         # The value of the gate will be used in the target rate loss
