@@ -29,7 +29,7 @@ parser.add_argument('data', metavar='DIR',
                     help='path to dataset')
 parser.add_argument('--batch-size', type=int, default=256, metavar='N',
                     help='input batch size for training (default: 256)')
-parser.add_argument('--epochs', type=int, default=20, metavar='N',
+parser.add_argument('--epochs', type=int, default=60, metavar='N',
                     help='number of epochs to train (default: 200)')
 parser.add_argument('--lrdecay', default=10, type=int,
                     help='epochs to decay lr')
@@ -41,7 +41,7 @@ parser.add_argument('--lrfact', default=1, type=float,
                     help='learning rate factor')
 parser.add_argument('--lossfact', default=1, type=float,
                     help='loss factor')
-parser.add_argument('--target', default=0.7, type=float, help='target rate')
+parser.add_argument('--target', default=1.0, type=float, help='target rate')
 parser.add_argument('--momentum', default=0.9, type=float, help='momentum')
 parser.add_argument('--weight-decay', '--wd', default=1e-4, type=float,
                     help='weight decay (default: 1e-4)')
@@ -84,10 +84,10 @@ def main():
         
     # set the target rates for each layer
     # the default is to use the same target rate for each layer
-    target_rates_list = [args.target] * 16
+    target_rates_list = [args.target] * 33
     target_rates = {i:target_rates_list[i] for i in range(len(target_rates_list))}
 
-    model = ResNet50_ImageNet()
+    model = ResNet101_ImageNet()
 
     # optionally initialize from pretrained
     if args.pretrained:
@@ -250,7 +250,7 @@ def train(train_loader, model, criterion, optimizer, epoch, target_rates):
         acts = 0
         acts_plot = 0
         for j, act in enumerate(activation_rates):
-            if target_rates[j] < 1:
+            if target_rates[j] <= 1:
                 acts_plot += torch.mean(act)
                 acts += torch.pow(target_rates[j] - torch.mean(act), 2)
             else:
@@ -261,7 +261,7 @@ def train(train_loader, model, criterion, optimizer, epoch, target_rates):
         acts = torch.mean(acts / len(activation_rates))
 
         act_loss = args.lossfact * acts
-        loss = loss_classify + act_loss
+        loss = loss_classify + 0*act_loss
 
         # Sometimes this value is nan 
         # If someone can find out why, please add a pull request
@@ -343,7 +343,7 @@ def validate(val_loader, model, criterion, epoch, target_rates):
 
             acts = 0
             for j, act in enumerate(activation_rates):
-                if target_rates[j] < 1:
+                if target_rates[j] <= 1:
                     acts += torch.mean(act)
                 else:
                     acts += 1

@@ -263,11 +263,11 @@ def ResNet110_cifar(nclass=10):
 def ResNet50_ImageNet():
     return ResNet_ImageNet(Bottleneck, [3,4,6,3])
 
-def ResNet101_ImageNet_with_gates():
+def ResNet101_ImageNet():
     return ResNet_ImageNet(Bottleneck, [3,4,23,3])
 
-def ResNet101_ImageNet_without_gates():
-    return ResNet_ImageNet(Bottleneck, [3,4,23,3])
+#def ResNet101_ImageNet_without_gates():
+#    return ResNet_ImageNet(Bottleneck, [3,4,23,3])
 
 def ResNet152_ImageNet():
     return ResNet_ImageNet(Bottleneck, [3,8,36,3])
