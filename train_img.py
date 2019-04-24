@@ -135,7 +135,7 @@ def main():
     val_loader = FacesDataset("images/val","images/val_labels.csv", transforms.Compose([transforms.ToTensor()]))
     
     train_loader =torch.utils.data.DataLoader(train_loader, batch_size=args.batch_size, shuffle=True, num_workers=2)
-    val_loader = torch.utils.data.DataLoader(val_loader, batch_size=args.batch_size, shuffle=True, num_workers=2)
+    val_loader = torch.utils.data.DataLoader(val_loader, batch_size=args.batch_size, shuffle=False, num_workers=2)
     # train_loader = torch.utils.data.DataLoader(
     #     datasets.ImageFolder(
     #         traindir,
@@ -263,7 +263,7 @@ def train(train_loader, model, criterion, optimizer, epoch, target_rates):
         acts = torch.mean(acts / len(activation_rates))
 
         act_loss = args.lossfact * acts
-        loss = loss_classify + 0*act_loss
+        loss = loss_classify + act_loss
 
         # Sometimes this value is nan 
         # If someone can find out why, please add a pull request
@@ -339,7 +339,14 @@ def validate(val_loader, model, criterion, epoch, target_rates):
 
             # compute output
             output, activation_rates = model(input_var, temperature=temp)
-
+            #print(target.data.cpu().numpy()) #.data[0].cpu().numpy()) #for i in range(args.batch_size))
+            for i in range(args.batch_size):
+                print(target.data.cpu().numpy()[i],end='')
+                print(" ",end='')
+                for j in range(33):
+                    print(activation_rates[j].cpu().numpy()[i][0][0],end='')
+                    print(" ",end='')
+                print("\n",end='')
             # classification loss
             loss = criterion(output, target_var)
 
@@ -370,7 +377,7 @@ def validate(val_loader, model, criterion, epoch, target_rates):
             batch_time.update(time.time() - end)
             end = time.time()
 
-            if i % args.print_freq == 0:
+            if i  <  0:
                 print('Test: [{0}/{1}]\t'
                       'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
                       'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
