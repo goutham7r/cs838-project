@@ -22,6 +22,8 @@ import math
 from visdom import Visdom
 import numpy as np
 
+from flops_benchmark import add_flops_counting_methods
+
 
 # Training settings
 parser = argparse.ArgumentParser(description='PyTorch CIFAR Example')
@@ -90,6 +92,9 @@ def main():
     target_rates = {i:target_rates_list[i] for i in range(len(target_rates_list))}
 
     model = ResNet101_ImageNet()
+
+    model = add_flops_counting_methods(model)
+    model.start_flops_count()
 
     # optionally initialize from pretrained
     if args.pretrained:
@@ -237,6 +242,7 @@ def train(train_loader, model, criterion, optimizer, epoch, target_rates):
 
     for i, (input, target) in enumerate(train_loader):
         # input = input.view((input.size(0), input.size(2), input.size(3), input.size(1)))
+        print(model.compute_average_flops_cost()/ 1e9 / 2)
         target = target.cuda(async=True)
         input = input.cuda()
         input_var = torch.autograd.Variable(input)
