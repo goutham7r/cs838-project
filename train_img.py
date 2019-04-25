@@ -41,7 +41,7 @@ parser.add_argument('--lrfact', default=1, type=float,
                     help='learning rate factor')
 parser.add_argument('--lossfact', default=1, type=float,
                     help='loss factor')
-parser.add_argument('--target', default=1.0, type=float, help='target rate')
+parser.add_argument('--target', default=0.4, type=float, help='target rate')
 parser.add_argument('--momentum', default=0.9, type=float, help='momentum')
 parser.add_argument('--weight-decay', '--wd', default=1e-4, type=float,
                     help='weight decay (default: 1e-4)')
@@ -85,8 +85,8 @@ def main():
     # set the target rates for each layer
     # the default is to use the same target rate for each layer
     target_rates_list = [args.target] * 33
-    for i in range(7,30):
-        target_rates_list[i]=0.7
+    #for i in range(7,30):
+    #    target_rates_list[i]=0.4
     target_rates = {i:target_rates_list[i] for i in range(len(target_rates_list))}
 
     model = ResNet101_ImageNet()
@@ -340,6 +340,7 @@ def validate(val_loader, model, criterion, epoch, target_rates):
             # compute output
             output, activation_rates = model(input_var, temperature=temp)
             #print(target.data.cpu().numpy()) #.data[0].cpu().numpy()) #for i in range(args.batch_size))
+            
             for i in range(args.batch_size):
                 print(target.data.cpu().numpy()[i],end='')
                 print(" ",end='')
@@ -347,6 +348,7 @@ def validate(val_loader, model, criterion, epoch, target_rates):
                     print(activation_rates[j].cpu().numpy()[i][0][0],end='')
                     print(" ",end='')
                 print("\n",end='')
+            
             # classification loss
             loss = criterion(output, target_var)
 
@@ -377,7 +379,7 @@ def validate(val_loader, model, criterion, epoch, target_rates):
             batch_time.update(time.time() - end)
             end = time.time()
 
-            if i  <  0:
+            if i < 0:    #% args.print_freq==0:
                 print('Test: [{0}/{1}]\t'
                       'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
                       'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
