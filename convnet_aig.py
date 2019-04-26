@@ -322,7 +322,7 @@ def ResNet50_ImageNet():
     return ResNet_ImageNet(Bottleneck, [3,4,6,3])
 
 def ResNet101_ImageNet():
-    return ResNet_ImageNet(Bottleneck_without_gates, [3,4,23,3])
+    return ResNet_ImageNet(Bottleneck, [3,4,23,3])
 
 #def ResNet101_ImageNet_without_gates():
 #    return ResNet_ImageNet(Bottleneck, [3,4,23,3])
@@ -399,8 +399,8 @@ class ActivationAccum_img():
                 #self.gates[k] = self.gates[k].data.cpu().numpy()[0]
         
         if self.epoch in [30, 60, 99, 149]:
-            return([{k: self.gates[k] / 50000 for k in self.gates},
+            return([{k: self.gates[k] / 7499 for k in self.gates},
                    {k: self.classes[k] / 50 / np.sum(self.numblocks) for k in self.classes},
                    self.heatmap.cpu().numpy() / 50])
         else:
-            return([{k: self.gates[k] / 50000 for k in self.gates}])
+            return([{k: self.gates[k] / 7499 for k in self.gates}])
