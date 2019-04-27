@@ -262,7 +262,10 @@ def train(train_loader, model, criterion, optimizer, epoch, target_rates):
 
         act_loss = args.lossfact * acts
 
-        bias_loss = torch.mean(torch.pow(activation_rates*male_mask_t, 2) + torch.pow(1-activation_rates*female_mask_t, 2))
+        bias_loss = 0
+        for j, act in enumerate(activation_rates):
+            bias_loss += (1-gender[i])*torch.mean(torch.pow(activation_rates[i]-male_mask_t, 2)) 
+                                + gender[i]*torch.mean(torch.pow(activation_rates[i]-female_mask_t, 2))
 
         loss = loss_classify + act_loss + bias_loss
 
