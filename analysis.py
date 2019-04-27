@@ -4,11 +4,122 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-a=pd.read_csv('manual_annotations.csv',delimiter=',')
-b=pd.read_csv('extract_labels_train_all_40.out',delimiter=' ',header=None)
-b=np.transpose(b)
+def ndprint(a, format_string ='{0:.2f}'):
+    print([(i,float(format_string.format(v,i))) for i,v in enumerate(a)])
 
-num = 7499
+
+a=pd.read_csv('manual_annotations.csv',delimiter=',')
+# b=pd.read_csv('extract_labels.out',delimiter=' ',header=None)
+b=pd.read_csv('aig_all_40_train.out',delimiter=' ',header=None)
+
+
+b=b.values[:,:-1]
+# b=np.transpose(b)
+
+print(b.shape)
+m = np.mean(b, axis=0)
+ndprint(m)
+
+num = b.shape[0]
+
+
+def gender():
+	print("Gender Analysis")
+	male=[0.0 for i in range(33)]
+	female=[0.0 for i in range(33)]
+	male_c=0
+	female_c=0
+	unk_c=0
+
+	for j in range(num):
+		if(a['Gender'][b[j][0]]==0):
+			for i in range(33):
+				male[i]+=b[j][i+1]
+			male_c+=1
+		elif(a['Gender'][b[j][0]]==1):
+			for i in range(33):
+				female[i]+=b[j][i+1]
+			female_c+=1
+		else:
+			unk_c+=1
+
+	#print(unk_c/10)
+	print(male_c, female_c, unk_c)
+
+	gender=np.zeros([2,33])
+	gender[0]=np.true_divide(male,male_c)
+	gender[1]=np.true_divide(female,female_c)
+
+	plt.figure()
+	ax = sns.heatmap(gender[:,7:30], linewidth=0.5, cmap="YlGnBu")
+	ax.set_title('Gender')
+	# plt.show()
+
+
+def age():
+	print("Age Analysis")
+	# -1, <25, 25-35, 35-45, 45-55, 55+
+	unk = [0.0 for i in range(33)]
+	unk_c = 0
+
+	age_lt_25 = [0.0 for i in range(33)]
+	age_lt_25_c = 0
+
+	age_25_35 = [0.0 for i in range(33)]
+	age_25_35_c = 0
+
+	age_35_45 = [0.0 for i in range(33)]
+	age_35_45_c = 0
+
+	age_45_55 = [0.0 for i in range(33)]
+	age_45_55_c = 0
+
+	age_gt_55 = [0.0 for i in range(33)]
+	age_gt_55_c = 0
+
+	for j in range(num):
+		age = a['Age'][b[j][0]]
+
+		if age == -1:
+			for i in range(33):
+				unk[i]+=b[j][i+1]
+			unk_c+=1
+		elif age<25:
+			for i in range(33):
+				age_lt_25[i]+=b[j][i+1]
+			age_lt_25_c+=1
+		elif age<35:
+			for i in range(33):
+				age_25_35[i]+=b[j][i+1]
+			age_25_35_c+=1
+		elif age<45:
+			for i in range(33):
+				age_35_45[i]+=b[j][i+1]
+			age_35_45_c+=1
+		elif age<55:
+			for i in range(33):
+				age_45_55[i]+=b[j][i+1]
+			age_45_55_c+=1
+		else:
+			for i in range(33):
+				age_gt_55[i]+=b[j][i+1]
+			age_gt_55_c+=1
+	print(unk_c, age_lt_25_c, age_25_35_c, age_35_45_c, age_45_55_c, age_gt_55_c)
+
+	age=np.zeros([6,33])
+	age[0]=np.true_divide(unk,unk_c)
+	age[1]=np.true_divide(age_lt_25,age_lt_25_c)
+	age[2]=np.true_divide(age_25_35,age_25_35_c)
+	age[3]=np.true_divide(age_35_45,age_35_45_c)
+	age[4]=np.true_divide(age_45_55,age_45_55_c)
+	age[5]=np.true_divide(age_gt_55,age_gt_55_c)
+
+	plt.figure()
+	ax = sns.heatmap(age[:,7:30], linewidth=0.5, cmap="YlGnBu")
+	ax.set_title('Age')
+
+
+
 
 def facial():
 	print("Facial Analysis")
@@ -234,10 +345,12 @@ def specs():
 
 def main():
 	facial()
-	specs()
-	eye()
-	race()
-	skin()
+	# specs()
+	# eye()
+	# race()
+	# skin()
+	gender()
+	age()
 	plt.show()
 
 
