@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 a=pd.read_csv('manual_annotations.csv',delimiter=',')
-b=pd.read_csv('extract_labels.out',delimiter=' ',header=None)
+b=pd.read_csv('extract_labels_train.out',delimiter=' ',header=None)
 b=np.transpose(b)
 
 black=[0.0 for i in range(33)]
@@ -22,7 +22,7 @@ latino_c=0
 caucasian_c=0
 unk_c=0
 
-for j in range(7499):
+for j in range(59999):
 	if(a['Race'][b[j][0]]==0):
 		for i in range(33):
 			black[i]+=b[j][i+1]

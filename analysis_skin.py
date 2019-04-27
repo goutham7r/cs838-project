@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 a=pd.read_csv('manual_annotations.csv',delimiter=',')
-b=pd.read_csv('extract_labels.out',delimiter=' ',header=None)
+b=pd.read_csv('extract_labels_train.out',delimiter=' ',header=None)
 b=np.transpose(b)
 
 white=[0.0 for i in range(33)]
@@ -16,7 +16,7 @@ brown_c=0
 black_c=0
 unk_c=0
 
-for j in range(7499):
+for j in range(59999):
 	if(a['Skin'][b[j][0]]==2):
 		for i in range(33):
 			white[i]+=b[j][i+1]
