@@ -1,4 +1,4 @@
-'''n CIFAR10 with PyTorch.'''
+'''Train CIFAR10 with PyTorch.'''
 from __future__ import print_function
 
 import argparse
@@ -41,7 +41,7 @@ parser.add_argument('--lrfact', default=1, type=float,
                     help='learning rate factor')
 parser.add_argument('--lossfact', default=1, type=float,
                     help='loss factor')
-parser.add_argument('--target', default=0.7, type=float, help='target rate')
+parser.add_argument('--target', default=1.0, type=float, help='target rate')
 parser.add_argument('--momentum', default=0.9, type=float, help='momentum')
 parser.add_argument('--weight-decay', '--wd', default=1e-4, type=float,
                     help='weight decay (default: 1e-4)')
@@ -337,7 +337,7 @@ def validate(val_loader, model, criterion, epoch, target_rates):
 
             # compute output
             output, activation_rates = model(input_var, temperature=temp)
-
+            #print(target.data[0].cpu().numpy(),[a.data[0].cpu().numoy()[0][0] for a in activation_rates])
             # classification loss
             loss = criterion(output, target_var)
 
